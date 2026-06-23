@@ -42,24 +42,24 @@ describe("prompt system", () => {
   it("loads the environment template", () => {
     const env = loadPrompt("environment");
     expect(env).toContain("{{cwd}}");
-    expect(env).toContain("{{gitStatus}}");
+    expect(env).toContain("{{projectType}}");
   });
 
   it("loads the tools template", () => {
     const tools = loadPrompt("tools");
-    expect(tools).toContain("{{toolList}}");
+    expect(tools).toContain("read");
+    expect(tools).toContain("Writes a file");
   });
 
   it("composes a full prompt for builder agent", () => {
     const prompt = composeSystemPrompt("builder", {
-      tools: ["read", "write", "edit"],
-      environment: { cwd: "/test", shell: "bash", gitStatus: "clean" },
+      environment: { cwd: "/test" },
     });
     expect(prompt).toContain("Lade");
     expect(prompt).toContain("code-writing");
     expect(prompt).toContain("read");
     expect(prompt).toContain("/test");
-    expect(prompt).toContain("clean");
+    expect(prompt).toContain("Sandbox");
   });
 
   it("composes a prompt with agent-to-file mapping", () => {
@@ -74,17 +74,18 @@ describe("prompt system", () => {
   it("renders environment context", () => {
     const env = renderEnvironment({
       cwd: "/workspace",
-      shell: "bash",
-      gitStatus: "clean",
       date: "2026-06-22",
-      platform: "linux",
+      platform: "linux x86_64",
       runtime: "Node.js 20.11.0",
       projectName: "test-project",
+      projectType: "Next.js 14",
+      defaultMode: "plan",
     });
     expect(env).toContain("/workspace");
-    expect(env).toContain("bash");
-    expect(env).toContain("clean");
     expect(env).toContain("2026-06-22");
+    expect(env).toContain("linux x86_64");
     expect(env).toContain("test-project");
+    expect(env).toContain("Next.js 14");
+    expect(env).toContain("plan");
   });
 });

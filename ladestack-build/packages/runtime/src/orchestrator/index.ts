@@ -63,12 +63,10 @@ export class AgentOrchestrator {
     }
 
     const usage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
-    const agentTools = this.getAgentTools(agent);
 
     let systemPrompt: string;
     try {
       systemPrompt = composeSystemPrompt(agent.id, {
-        tools: agentTools.map((t) => t.name),
         environment: captureEnvironment(),
       });
     } catch {

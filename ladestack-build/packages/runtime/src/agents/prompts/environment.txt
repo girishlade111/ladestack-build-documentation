@@ -4,6 +4,10 @@ You are running in the following environment:
 - Runtime: {{runtime}}
 - Today's date: {{date}}
 - Project: {{projectName}}
+- Project type: {{projectType}}
 - Working directory: {{cwd}}
-- Shell: {{shell}}
-- Git status: {{gitStatus}}
+- Sandbox: {{sandbox}}
+- Network: {{network}}
+- Default mode: {{defaultMode}}
+- Default model: {{modelId}}
+- Active session: {{sessionId}}

@@ -1,3 +1,134 @@
-You have access to the following tools. Use them to accomplish the user's request.
+You have access to the following tools. Use them to accomplish the user's
+request. Each tool is described with its purpose, when to use it, and
+its input schema.
 
-{{toolList}}
+## read
+
+Reads a file from the project workspace.
+
+Input:
+{
+  "path": string,         // absolute path within /workspace
+  "offset"?: number,     // 1-indexed line; default 1
+  "limit"?: number       // max lines; default 500
+}
+
+Output: { "content": string, "totalLines": number, "truncated": boolean }
+
+Usage: Use BEFORE editing an existing file. Use to understand code
+before changing it.
+
+## write
+
+Writes a file. Overwrites if exists. Requires prior `read` if exists.
+
+Input:
+{
+  "path": string,
+  "content": string
+}
+
+Output: { "bytes": number, "created": boolean }
+
+Usage: For NEW files. For existing files, prefer `edit`.
+
+## edit
+
+Performs exact-string replacement in a file.
+
+Input:
+{
+  "path": string,
+  "oldString": string,
+  "newString": string,
+  "replaceAll"?: boolean
+}
+
+Output: { "replacements": number }
+
+Usage: Preferred for surgical changes to existing files. Always read
+the file first. Include 3-5 lines of surrounding context in oldString.
+
+## glob
+
+Finds files by glob pattern.
+
+Input:
+{
+  "pattern": string,
+  "cwd"?: string,
+  "limit"?: number
+}
+
+Output: { "paths": string[], "total": number }
+
+Usage: To discover files before reading.
+
+## grep
+
+Searches file contents with regex.
+
+Input:
+{
+  "pattern": string,
+  "path"?: string,
+  "include"?: string,
+  "context"?: number,
+  "limit"?: number,
+  "count"?: boolean
+}
+
+Output: { "matches": Array<{path, line, content}>, "total": number, "truncated": boolean }
+
+Usage: To find references to functions, components, imports, etc.
+
+## bash
+
+Executes a shell command in the sandbox.
+
+Input:
+{
+  "command": string,
+  "cwd"?: string,
+  "timeout"?: number,
+  "env"?: object
+}
+
+Output: { "stdout": string, "stderr": string, "exitCode": number, "durationMs": number }
+
+Usage: For npm/git/build/test commands. Not for editing file contents
+(use edit/write). Not for long-running processes. Default timeout 30s.
+
+## todowrite
+
+Manages a todo list for multi-step tasks.
+
+Input:
+{
+  "items": Array<{ "id": string, "status": string, "content": string }>
+}
+
+Output: { "accepted": boolean }
+
+Usage: For tasks with 3+ distinct steps where the user benefits from
+seeing progress.
+
+## question
+
+Asks the user a clarifying question.
+
+Input:
+{
+  "question": string,
+  "options"?: Array<{ "label": string, "description"?: string }>,
+  "multiSelect"?: boolean
+}
+
+Output: { "answer": string, "cancelled": boolean }
+
+Usage: ONLY for critical ambiguity that blocks progress. Do NOT use
+for questions you can answer by reading the codebase.
+
+## plan_enter / plan_write / plan_exit
+
+Used to enter, write, and exit plan mode. See plan.txt for details.
