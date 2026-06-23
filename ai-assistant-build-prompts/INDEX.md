@@ -73,6 +73,7 @@ This folder contains **25 sequential prompts** for building an **open-source AI 
 | [25](./25-sessions-telemetry.md) | Sessions + telemetry | JSONL persistence + compaction + PostHog | 3 hr |
 
 **Total estimated time: 55-75 hours of focused AI-assisted work.**
+**Total output: 25 prompts · 29,613 lines · 1.1 MB · 91 bundled skills.**
 
 ---
 
@@ -211,17 +212,63 @@ After prompt 25, you should have:
 
 - [ ] Working `kilo` CLI with `kilo run`, `kilo serve` commands
 - [ ] HTTP API at `localhost:3000/api/sessions/...`
-- [ ] 8+ agents registered (build, plan, explore, scout, summarize, title, debug, ask, generate, orchestrator)
-- [ ] 11+ tools working (read, write, edit, glob, grep, bash, plan_*, todowrite, question, apply_patch)
-- [ ] 60+ bundled skills discoverable
+- [ ] 10+ agents registered (build, plan, explore, scout, summarize, title, debug, ask, generate, orchestrator)
+- [ ] 15+ tools working (read, write, edit, glob, grep, bash, todowrite, question, plan_*, apply_patch, recall, lsp, websearch, task)
+- [ ] 91 bundled skills discoverable (1 starter + 90 from prompts 19-22)
 - [ ] Plan mode functional (enter → write plan → exit → user review)
 - [ ] Multi-agent loop with tool execution
-- [ ] Subagent spawning via `task` tool
-- [ ] MCP integration (optional)
-- [ ] Session persistence + compaction
-- [ ] Telemetry (PostHog)
+- [ ] Subagent spawning via `task` tool (depth ≤ 3)
+- [ ] Wave-based orchestrator with parallel dispatch
+- [ ] MCP integration (stdio + SSE + streamable-HTTP transports)
+- [ ] LSP integration (TypeScript + Python + 5 more)
+- [ ] Session persistence + compaction + slash commands
+- [ ] Telemetry (opt-in, PostHog-compatible)
 
 Run `kilo run "echo hello"` to verify end-to-end.
+
+---
+
+## File sizes (actual)
+
+| # | File | Lines |
+|---|---|---|
+| 01 | monorepo-bootstrap | 253 |
+| 02 | cli-and-http-server | 439 |
+| 03 | config-and-discovery | 438 |
+| 04 | provider-abstraction | 649 |
+| 05 | byok-encryption | 512 |
+| 06 | tool-registry-pattern | 478 |
+| 07 | filesystem-tools | 688 |
+| 08 | search-tools | 518 |
+| 09 | bash-tool | 671 |
+| 10 | meta-tools | 733 |
+| 11 | plan-mode-tools | 834 |
+| 12 | specialty-tools | 1,256 |
+| 13 | agent-schema-registry | 975 |
+| 14 | agent-system-prompts | 797 |
+| 15 | agent-execution-loop | 858 |
+| 16 | multi-agent-subagents | 652 |
+| 17 | orchestrator-wave-dispatch | 834 |
+| 18 | skills-discovery | 852 |
+| 19 | skill-bundle-programming | 3,114 |
+| 20 | skill-bundle-devops | 3,099 |
+| 21 | skill-bundle-coder-productivity | 3,174 |
+| 22 | skill-bundles-additional | 3,556 |
+| 23 | mcp-client | 1,401 |
+| 24 | lsp-integration | 1,261 |
+| 25 | sessions-telemetry | 1,344 |
+| | **Total** | **29,613** |
+
+## Skills inventory by bundle
+
+| Bundle | Skills | Top skills |
+|---|---|---|
+| Starter (prompt 18) | 1 | `build-agent` |
+| Programming (prompt 19) | 24 | typescript-pro, react-expert, nextjs-app-router-patterns, postgres-pro, drizzle-orm-expert |
+| DevOps (prompt 20) | 22 | kubernetes-deployment, terraform-engineer, aws-skills, github-actions-advanced, sre-engineer |
+| Coder productivity (prompt 21) | 18 | tdd, code-review-excellence, systematic-debugging, pagespeed-enhancer, doc-coauthoring |
+| Additional (prompt 22) | 26 | prompt-engineer, rag-architect, security-reviewer, accessibility-compliance, frontend-design |
+| **Total** | **91** | |
 
 ---
 
