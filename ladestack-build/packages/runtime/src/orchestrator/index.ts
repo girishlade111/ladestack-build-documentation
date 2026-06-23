@@ -1,4 +1,4 @@
-import { LLMConfig, Message, TokenUsage, ToolCall, ToolResult, ProviderHandler } from "../provider/types.js";
+import { LLMConfig, Message, TokenUsage, ToolResult } from "../provider/types.js";
 import type { StreamEvent } from "../stream/types.js";
 import { providerRegistry, ProviderRegistry } from "../provider/registry.js";
 import { toolRegistry, ToolRegistry } from "../tool/registry.js";
@@ -50,11 +50,19 @@ export class AgentOrchestrator {
     registerBuiltinAgents();
   }
 
-  private async* executeStep(
+  async* execute(
     messages: Message[],
-    agent: AgentDefinition,
+    agentId?: string,
     onEvent?: (event: StreamEvent) => void
   ): AsyncGenerator<StreamEvent> {
+    const startTime = Date.now();
+    const agent = this.agents.getAgent(agentId ?? this.defaultAgentId);
+    if (!agent) {
+      yield { type: "error", error: `Unknown agent: ${agentId ?? this.defaultAgentId}` };
+      return;
+    }
+
+    const usage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
     const agentTools = this.getAgentTools(agent);
     const systemPrompt = agent.systemPrompt || getSystemPrompt(agent.id);
 
@@ -74,91 +82,59 @@ export class AgentOrchestrator {
       systemMessage.content += `\n\nAvailable tools:\n${toolsJson}`;
     }
 
-    const fullMessages = [systemMessage, ...messages];
-
-    const result = await this.providers.executeCompletion(
-      this.providerConfig.provider,
-      fullMessages,
-      this.providerConfig,
-      onEvent
-    );
-
-    yield {
-      type: "message_complete",
-      message: result.message,
-      usage: result.usage,
-    };
-
-    if (result.message.toolCalls && result.message.toolCalls.length > 0) {
-      yield {
-        type: "step_complete",
-        step: 0,
-        agentId: agent.id,
-        toolCalls: result.message.toolCalls.length,
-      };
-
-      const toolResults: ToolResult[] = [];
-
-      for (const tc of result.message.toolCalls) {
-        yield { type: "tool_execution_start", toolCall: tc };
-
-        const toolResult = await this.tools.executeTool(tc.name, tc.arguments, this.toolConfig);
-        toolResults.push(toolResult);
-
-        yield { type: "tool_execution_complete", toolResult };
-      }
-
-      const toolResultMessage: Message = {
-        role: "user",
-        content: "",
-        toolResults,
-      };
-
-      const nextMessages = [...messages, result.message, toolResultMessage];
-
-      yield* this.executeStep(nextMessages, agent, onEvent);
-    }
-  }
-
-  async* execute(
-    messages: Message[],
-    agentId?: string,
-    onEvent?: (event: StreamEvent) => void
-  ): AsyncGenerator<StreamEvent> {
-    const startTime = Date.now();
-    const agent = this.agents.getAgent(agentId ?? this.defaultAgentId);
-    if (!agent) {
-      yield { type: "error", error: `Unknown agent: ${agentId ?? this.defaultAgentId}` };
-      return;
-    }
-
-    const usage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
-
     for (let step = 0; step < this.maxSteps; step++) {
       yield { type: "step_start", step, maxSteps: this.maxSteps, agentId: agent.id };
 
       try {
-        let stepsYielded = false;
-        for await (const event of this.executeStep(messages, agent, onEvent)) {
-          yield event;
-          stepsYielded = true;
+        const fullMessages = [systemMessage, ...messages];
 
-          if (event.type === "message_complete") {
-            usage.promptTokens += event.usage.promptTokens;
-            usage.completionTokens += event.usage.completionTokens;
-            usage.totalTokens += event.usage.totalTokens;
+        const result = await this.providers.executeCompletion(
+          this.providerConfig.provider,
+          fullMessages,
+          this.providerConfig,
+          onEvent
+        );
 
-            if (!event.message.toolCalls || event.message.toolCalls.length === 0) {
-              yield { type: "usage", usage };
-              const totalTime = Date.now() - startTime;
-              return;
-            }
+        yield {
+          type: "message_complete",
+          message: result.message,
+          usage: result.usage,
+        };
 
-            messages.push(event.message);
-          }
+        usage.promptTokens += result.usage.promptTokens;
+        usage.completionTokens += result.usage.completionTokens;
+        usage.totalTokens += result.usage.totalTokens;
+
+        if (!result.message.toolCalls || result.message.toolCalls.length === 0) {
+          yield { type: "usage", usage };
+          return;
         }
 
-        if (!stepsYielded) break;
+        messages.push(result.message);
+
+        yield {
+          type: "step_complete",
+          step,
+          agentId: agent.id,
+          toolCalls: result.message.toolCalls.length,
+        };
+
+        const toolResults: ToolResult[] = [];
+
+        for (const tc of result.message.toolCalls) {
+          yield { type: "tool_execution_start", toolCall: tc };
+
+          const toolResult = await this.tools.executeTool(tc.name, tc.arguments, this.toolConfig);
+          toolResults.push(toolResult);
+
+          yield { type: "tool_execution_complete", toolResult };
+        }
+
+        messages.push({
+          role: "user",
+          content: "",
+          toolResults,
+        });
       } catch (error) {
         yield {
           type: "error",

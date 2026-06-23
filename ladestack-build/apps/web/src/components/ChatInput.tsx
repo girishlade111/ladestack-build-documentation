@@ -15,6 +15,7 @@ export function ChatInput() {
     setIsStreaming,
     addMessage,
     updateMessage,
+    setPreviewUrl,
     provider,
     model,
     apiKey,
@@ -90,6 +91,9 @@ export function ChatInput() {
         onChunk: (text) => {
           fullContent += text
           updateMessage(assistantMessageId, { content: fullContent })
+        },
+        onPreview: (url) => {
+          setPreviewUrl(url)
         },
         onToolCall: (data) => {
           const tc = (data as { id?: string; name?: string; args?: Record<string, unknown> })

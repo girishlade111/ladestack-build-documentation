@@ -42,7 +42,7 @@ export async function deleteProject(id: string): Promise<void> {
 }
 
 export async function sendChatMessage(request: ChatRequest): Promise<Response> {
-  return fetch("/api/chat", {
+  return fetch(`${API_BASE}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
@@ -55,6 +55,7 @@ export function createSSEConnection(
     onChunk: (text: string) => void
     onToolCall?: (data: unknown) => void
     onToolResult?: (data: unknown) => void
+    onPreview?: (url: string) => void
     onDone: () => void
     onError: (error: Error) => void
   }
@@ -82,6 +83,9 @@ export function createSSEConnection(
             break
           case "tool-result":
             callbacks.onToolResult?.(data)
+            break
+          case "preview":
+            callbacks.onPreview?.(data.url ?? "")
             break
           case "done":
             callbacks.onDone()

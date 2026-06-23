@@ -70,6 +70,6 @@ export interface ChatRequest {
 }
 
 export interface SSEEvent {
-  type: "chunk" | "done" | "error" | "tool-call" | "tool-result"
+  type: "chunk" | "done" | "error" | "tool-call" | "tool-result" | "preview"
   data: string
 }

@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
 import { authMiddleware } from "./middleware/auth";
 import { errorHandler } from "./middleware/error";
@@ -12,6 +13,12 @@ import { skills } from "./routes/skills";
 const app = new Hono();
 
 app.use("*", errorHandler);
+app.use("*", cors({
+  origin: ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000"],
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));
 app.use("/api/*", authMiddleware);
 
 app.route("/api/health", health);

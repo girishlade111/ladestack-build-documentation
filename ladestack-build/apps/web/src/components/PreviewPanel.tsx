@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import { RefreshCw, ExternalLink, Monitor } from "lucide-react"
+import { useStore } from "../lib/store"
 
 export function PreviewPanel() {
-  const [url] = useState("about:blank")
+  const url = useStore((s) => s.previewUrl)
   const [key, setKey] = useState(0)
 
   const handleRefresh = () => {

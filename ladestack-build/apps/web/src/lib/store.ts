@@ -27,6 +27,9 @@ interface AppState {
   addProject: (project: Project) => void
   removeProject: (id: string) => void
 
+  previewUrl: string
+  setPreviewUrl: (url: string) => void
+
   provider: Provider
   setProvider: (provider: Provider) => void
 
@@ -72,6 +75,9 @@ export const useStore = create<AppState>((set) => ({
     set((state) => ({
       projects: state.projects.filter((p) => p.id !== id),
     })),
+
+  previewUrl: "about:blank",
+  setPreviewUrl: (url) => set({ previewUrl: url }),
 
   provider: "openai",
   setProvider: (provider) => set({ provider }),

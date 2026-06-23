@@ -1,15 +1,8 @@
 import type { LLMConfig, LLMProvider } from "@ladestack/runtime";
 
 export interface BridgeStreamEvent {
-  type:
-    | "message_start"
-    | "text_delta"
-    | "tool_call_start"
-    | "tool_call_delta"
-    | "tool_call_end"
-    | "message_complete"
-    | "error";
-  data: Record<string, unknown>;
+  type: "chunk" | "tool-call" | "tool-result" | "preview" | "done" | "error";
+  [key: string]: unknown;
 }
 
 export interface AgentRunnerConfig {
@@ -42,11 +35,6 @@ export async function executeWithStreaming(
         }
       };
 
-      send({
-        type: "message_start",
-        data: { agentId: agentId ?? "default", timestamp: Date.now() },
-      });
-
       const run = async () => {
         try {
           const { AgentOrchestrator } = await import("@ladestack/runtime");
@@ -65,6 +53,22 @@ export async function executeWithStreaming(
 
           let fullContent = "";
 
+          function detectPreviewUrls(text: string) {
+            const urlRegex = /(https?:\/\/[^\s"'<>\]\)]+)/g;
+            const matches = text.match(urlRegex);
+            if (matches) {
+              for (const url of matches) {
+                if (
+                  url.includes("localhost") ||
+                  url.includes("127.0.0.1") ||
+                  url.includes("0.0.0.0")
+                ) {
+                  send({ type: "preview", url });
+                }
+              }
+            }
+          }
+
           for await (const event of orchestrator.execute(
             messages.map((m) => ({
               role: m.role as "user" | "assistant" | "system",
@@ -74,57 +78,37 @@ export async function executeWithStreaming(
           )) {
             if (event.type === "text_delta") {
               fullContent += event.text;
-              send({
-                type: "text_delta",
-                data: { delta: event.text, agentId: agentId ?? "default" },
-              });
+              send({ type: "chunk", content: event.text });
             } else if (event.type === "tool_call_start") {
               send({
-                type: "tool_call_start",
-                data: {
-                  toolName: event.name,
-                  input: event.arguments,
-                  toolCallId: event.id,
-                },
-              });
-            } else if (event.type === "tool_call_delta") {
-              send({
-                type: "tool_call_delta",
-                data: { delta: event.delta, toolCallId: event.id },
+                type: "tool-call",
+                id: event.id,
+                name: event.name,
+                args: event.arguments,
               });
             } else if (event.type === "tool_call_end") {
               send({
-                type: "tool_call_end",
-                data: {
-                  toolName: event.name,
-                  output: event.result,
-                  toolCallId: event.id,
-                },
+                type: "tool-result",
+                id: event.id,
+                name: event.name,
+                result: event.result,
+                duration: event.result?.duration,
               });
+              if (typeof event.result?.result === "string") {
+                detectPreviewUrls(event.result.result);
+              }
             } else if (event.type === "message_complete") {
-              send({
-                type: "message_complete",
-                data: {
-                  content: event.message.content,
-                  agentId: agentId ?? "default",
-                  timestamp: Date.now(),
-                },
-              });
+              detectPreviewUrls(event.message.content);
             } else if (event.type === "error") {
-              send({
-                type: "error",
-                data: { error: event.error },
-              });
+              send({ type: "error", message: event.error });
             }
           }
+
+          send({ type: "done" });
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           try {
-            const errorEvent: BridgeStreamEvent = {
-              type: "error",
-              data: { error: message },
-            };
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`));
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", message })}\n\n`));
           } catch {
             // stream closed
           }
