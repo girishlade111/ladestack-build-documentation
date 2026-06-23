@@ -10,6 +10,7 @@ import { projects } from "./routes/projects";
 import { sessions } from "./routes/sessions";
 import { skills } from "./routes/skills";
 import { files } from "./routes/files";
+import { store } from "./lib/db";
 
 const app = new Hono();
 
@@ -31,14 +32,16 @@ app.route("/api/files", files);
 
 const port = parseInt(process.env["PORT"] ?? "3001", 10);
 
-serve(
-  {
-    fetch: app.fetch,
-    port,
-  },
-  (info) => {
-    console.log(`LadeStack API running on http://localhost:${info.port}`);
-  }
-);
+store.init().then(() => {
+  serve(
+    {
+      fetch: app.fetch,
+      port,
+    },
+    (info) => {
+      console.log(`LadeStack API running on http://localhost:${info.port}`);
+    }
+  );
+});
 
 export default app;

@@ -1,6 +1,11 @@
 import { create } from "zustand"
 import type { Message, FileNode, Project, Provider } from "./types"
 
+function loadStr(key: string, fallback: string): string {
+  if (typeof window === "undefined") return fallback
+  return localStorage.getItem(key) ?? fallback
+}
+
 interface AppState {
   messages: Message[]
   addMessage: (message: Message) => void
@@ -41,6 +46,9 @@ interface AppState {
 
   currentProjectId: string | null
   setCurrentProjectId: (id: string | null) => void
+
+  mode: "chat" | "plan" | "build"
+  setMode: (mode: "chat" | "plan" | "build") => void
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -82,15 +90,18 @@ export const useStore = create<AppState>((set) => ({
   previewUrl: "about:blank",
   setPreviewUrl: (url) => set({ previewUrl: url }),
 
-  provider: "openai",
-  setProvider: (provider) => set({ provider }),
+  provider: loadStr("lstk-provider", "openai") as Provider,
+  setProvider: (provider) => { localStorage.setItem("lstk-provider", provider); set({ provider }) },
 
-  model: "gpt-4o",
-  setModel: (model) => set({ model }),
+  model: loadStr("lstk-model", "gpt-4o"),
+  setModel: (model) => { localStorage.setItem("lstk-model", model); set({ model }) },
 
-  apiKey: "",
-  setApiKey: (key) => set({ apiKey: key }),
+  apiKey: loadStr("lstk-api-key", ""),
+  setApiKey: (key) => { localStorage.setItem("lstk-api-key", key); set({ apiKey: key }) },
 
   currentProjectId: null,
   setCurrentProjectId: (id) => set({ currentProjectId: id }),
+
+  mode: "chat",
+  setMode: (mode) => set({ mode }),
 }))

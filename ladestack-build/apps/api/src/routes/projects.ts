@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { store } from "../lib/db";
 
 interface Project {
   id: string;
@@ -10,14 +11,13 @@ interface Project {
 }
 
 const projects = new Hono();
-const store = new Map<string, Project>();
 
 projects.get("/", (c) => {
   const search = c.req.query("search")?.toLowerCase() ?? "";
   const page = Math.max(1, parseInt(c.req.query("page") ?? "1", 10));
   const limit = Math.min(100, Math.max(1, parseInt(c.req.query("limit") ?? "20", 10)));
 
-  let all = Array.from(store.values());
+  let all = store.all();
 
   if (search) {
     all = all.filter(
@@ -55,7 +55,7 @@ projects.post("/", async (c) => {
     updatedAt: now,
   };
 
-  store.set(project.id, project);
+  await store.set(project.id, project);
   return c.json(project, 201);
 });
 
@@ -87,18 +87,18 @@ projects.put("/:id", async (c) => {
     updatedAt: Date.now(),
   };
 
-  store.set(id, updated);
+  await store.set(id, updated);
   return c.json(updated);
 });
 
-projects.delete("/:id", (c) => {
+projects.delete("/:id", async (c) => {
   const id = c.req.param("id");
 
-  if (!store.has(id)) {
+  if (!store.get(id)) {
     return c.json({ error: "Project not found" }, 404);
   }
 
-  store.delete(id);
+  await store.delete(id);
   return c.json({ success: true });
 });
 

@@ -5,6 +5,7 @@ import { FileExplorer } from "@/components/FileExplorer"
 import { ChatPanel } from "@/components/ChatPanel"
 import { EditorPanel } from "@/components/EditorPanel"
 import { PreviewPanel } from "@/components/PreviewPanel"
+import { SettingsTrigger } from "@/components/SettingsDialog"
 
 function ResizeHandle() {
   return (
@@ -27,6 +28,8 @@ import { useStore } from "@/lib/store"
 
 export function WorkspaceShell({ projectId }: WorkspaceShellProps) {
   const setCurrentProjectId = useStore((s) => s.setCurrentProjectId)
+  const mode = useStore((s) => s.mode)
+  const setMode = useStore((s) => s.setMode)
 
   useEffect(() => {
     setCurrentProjectId(projectId ?? null)
@@ -44,11 +47,27 @@ export function WorkspaceShell({ projectId }: WorkspaceShellProps) {
           </span>
         </div>
 
-        <div className="flex items-center gap-1 ml-auto">
+        <div className="flex items-center gap-0.5">
+          {(["chat", "plan", "build"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors capitalize ${
+                mode === m
+                  ? "bg-brand-gold text-brand-navy"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {m === "chat" ? "Chat" : m === "plan" ? "Plan" : "Build"}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1 ml-2">
           <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-surface-light text-[10px] text-muted-foreground">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-400" />
             Connected
           </div>
+          <SettingsTrigger />
         </div>
       </header>
 
