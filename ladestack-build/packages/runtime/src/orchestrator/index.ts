@@ -7,7 +7,7 @@ import { agentRegistry, AgentRegistry } from "../agent/registry.js";
 import { AgentDefinition } from "../agent/types.js";
 import { registerBuiltinAgents } from "../agent/agents.js";
 import { registerAllTools } from "../tool/tools/index.js";
-import { getSystemPrompt } from "./prompts.js";
+import { composeSystemPrompt, captureEnvironment } from "../agents/compose.js";
 
 export interface OrchestratorConfig {
   providerConfig: LLMConfig;
@@ -64,23 +64,21 @@ export class AgentOrchestrator {
 
     const usage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
     const agentTools = this.getAgentTools(agent);
-    const systemPrompt = agent.systemPrompt || getSystemPrompt(agent.id);
+
+    let systemPrompt: string;
+    try {
+      systemPrompt = composeSystemPrompt(agent.id, {
+        tools: agentTools.map((t) => t.name),
+        environment: captureEnvironment(),
+      });
+    } catch {
+      systemPrompt = agent.systemPrompt;
+    }
 
     const systemMessage: Message = {
       role: "system",
       content: systemPrompt,
     };
-
-    if (agentTools.length > 0) {
-      const toolsJson = JSON.stringify(
-        agentTools.map((t) => ({
-          name: t.name,
-          description: t.description,
-          input_schema: t.parameters,
-        }))
-      );
-      systemMessage.content += `\n\nAvailable tools:\n${toolsJson}`;
-    }
 
     for (let step = 0; step < this.maxSteps; step++) {
       yield { type: "step_start", step, maxSteps: this.maxSteps, agentId: agent.id };

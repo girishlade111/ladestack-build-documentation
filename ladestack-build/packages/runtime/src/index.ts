@@ -56,6 +56,11 @@ export {
   BUILTIN_AGENTS,
 } from "./agent/agents.js";
 
+// Agents Module (prompt composition)
+export { loadPrompt } from "./agents/loader.js";
+export { composeSystemPrompt, renderEnvironment, captureEnvironment } from "./agents/compose.js";
+export type { EnvironmentContext } from "./agents/compose.js";
+
 // Orchestrator Module
 export { AgentOrchestrator, createOrchestrator } from "./orchestrator/index.js";
 export type { OrchestratorConfig, OrchestratorState } from "./orchestrator/index.js";

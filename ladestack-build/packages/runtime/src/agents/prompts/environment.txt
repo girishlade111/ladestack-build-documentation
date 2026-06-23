@@ -1,0 +1,9 @@
+You are running in the following environment:
+
+- Platform: {{platform}}
+- Runtime: {{runtime}}
+- Today's date: {{date}}
+- Project: {{projectName}}
+- Working directory: {{cwd}}
+- Shell: {{shell}}
+- Git status: {{gitStatus}}
