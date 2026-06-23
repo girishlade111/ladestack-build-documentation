@@ -1,4 +1,4 @@
-import type { Project, ChatRequest } from "./types"
+import type { Project, ChatRequest, FileNode } from "./types"
 import { createParser } from "eventsource-parser"
 
 const API_BASE = "http://localhost:3001/api"
@@ -6,7 +6,8 @@ const API_BASE = "http://localhost:3001/api"
 export async function fetchProjects(): Promise<Project[]> {
   const res = await fetch(`${API_BASE}/projects`)
   if (!res.ok) throw new Error("Failed to fetch projects")
-  return res.json()
+  const data = await res.json()
+  return Array.isArray(data) ? data : data.items ?? []
 }
 
 export async function createProject(
@@ -39,6 +40,19 @@ export async function deleteProject(id: string): Promise<void> {
     method: "DELETE",
   })
   if (!res.ok) throw new Error("Failed to delete project")
+}
+
+export async function fetchFileTree(projectId: string): Promise<FileNode[]> {
+  const res = await fetch(`${API_BASE}/files/${projectId}`)
+  if (!res.ok) throw new Error("Failed to fetch file tree")
+  const data = await res.json()
+  return data.items ?? []
+}
+
+export async function readFile(projectId: string, filePath: string): Promise<{ content: string; language: string }> {
+  const res = await fetch(`${API_BASE}/files/${projectId}/content?path=${encodeURIComponent(filePath)}`)
+  if (!res.ok) throw new Error("Failed to read file")
+  return res.json()
 }
 
 export async function sendChatMessage(request: ChatRequest): Promise<Response> {

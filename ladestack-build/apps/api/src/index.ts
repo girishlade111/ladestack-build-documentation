@@ -9,6 +9,7 @@ import { chat } from "./routes/chat";
 import { projects } from "./routes/projects";
 import { sessions } from "./routes/sessions";
 import { skills } from "./routes/skills";
+import { files } from "./routes/files";
 
 const app = new Hono();
 
@@ -26,6 +27,7 @@ app.route("/api/chat", chat);
 app.route("/api/projects", projects);
 app.route("/api/sessions", sessions);
 app.route("/api/skills", skills);
+app.route("/api/files", files);
 
 const port = parseInt(process.env["PORT"] ?? "3001", 10);
 

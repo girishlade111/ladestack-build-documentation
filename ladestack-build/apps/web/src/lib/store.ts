@@ -38,6 +38,9 @@ interface AppState {
 
   apiKey: string
   setApiKey: (key: string) => void
+
+  currentProjectId: string | null
+  setCurrentProjectId: (id: string | null) => void
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -87,4 +90,7 @@ export const useStore = create<AppState>((set) => ({
 
   apiKey: "",
   setApiKey: (key) => set({ apiKey: key }),
+
+  currentProjectId: null,
+  setCurrentProjectId: (id) => set({ currentProjectId: id }),
 }))

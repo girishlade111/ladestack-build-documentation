@@ -9,8 +9,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "LadeStack Build",
-  description: "AI-powered development workspace",
+  title: "LadeStack Build - AI-Powered Development Workspace",
+  description: "Build, refactor, and debug full-stack applications with AI assistance in a powerful online workspace.",
 }
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="h-screen overflow-hidden antialiased">{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
   )
 }

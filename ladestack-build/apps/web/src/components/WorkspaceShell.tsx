@@ -18,7 +18,20 @@ function HorizontalResizeHandle() {
   )
 }
 
-export function WorkspaceShell() {
+interface WorkspaceShellProps {
+  projectId?: string
+}
+
+import { useEffect } from "react"
+import { useStore } from "@/lib/store"
+
+export function WorkspaceShell({ projectId }: WorkspaceShellProps) {
+  const setCurrentProjectId = useStore((s) => s.setCurrentProjectId)
+
+  useEffect(() => {
+    setCurrentProjectId(projectId ?? null)
+  }, [projectId, setCurrentProjectId])
+
   return (
     <div className="h-screen w-screen flex flex-col bg-background text-foreground overflow-hidden">
       <header className="flex items-center gap-3 px-4 py-2 border-b border-border/50 bg-surface shrink-0">
@@ -41,7 +54,7 @@ export function WorkspaceShell() {
 
       <PanelGroup direction="horizontal" className="flex-1">
         <Panel defaultSize={20} minSize={12} maxSize={35}>
-          <FileExplorer />
+          <FileExplorer projectId={projectId} />
         </Panel>
 
         <ResizeHandle />

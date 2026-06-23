@@ -25,7 +25,6 @@ const LANGUAGE_MAP: Record<string, string> = {
   py: "python",
   rs: "rust",
   go: "go",
-  rs: "rust",
   yaml: "yaml",
   yml: "yaml",
   toml: "toml",

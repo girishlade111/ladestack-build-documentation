@@ -4,6 +4,7 @@ interface Project {
   id: string;
   name: string;
   description: string;
+  sandboxPath: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -49,6 +50,7 @@ projects.post("/", async (c) => {
     id: crypto.randomUUID(),
     name,
     description: body.description?.trim() ?? "",
+    sandboxPath: `sandbox/${crypto.randomUUID()}`,
     createdAt: now,
     updatedAt: now,
   };
