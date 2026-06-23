@@ -1,0 +1,35 @@
+import "dotenv/config";
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { authMiddleware } from "./middleware/auth";
+import { errorHandler } from "./middleware/error";
+import { health } from "./routes/health";
+import { chat } from "./routes/chat";
+import { projects } from "./routes/projects";
+import { sessions } from "./routes/sessions";
+import { skills } from "./routes/skills";
+
+const app = new Hono();
+
+app.use("*", errorHandler);
+app.use("/api/*", authMiddleware);
+
+app.route("/api/health", health);
+app.route("/api/chat", chat);
+app.route("/api/projects", projects);
+app.route("/api/sessions", sessions);
+app.route("/api/skills", skills);
+
+const port = parseInt(process.env["PORT"] ?? "3001", 10);
+
+serve(
+  {
+    fetch: app.fetch,
+    port,
+  },
+  (info) => {
+    console.log(`LadeStack API running on http://localhost:${info.port}`);
+  }
+);
+
+export default app;

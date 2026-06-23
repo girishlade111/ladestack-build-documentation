@@ -1,0 +1,20 @@
+{
+  "name": "ladestack-build",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && pnpm -r exec -- rm -rf node_modules .turbo dist .next",
+    "postinstall": "echo 'done'"
+  },
+  "packageManager": "pnpm@11.8.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "eslint-config-prettier": "^10.1.8",
+    "turbo": "2.9.18"
+  }
+}
